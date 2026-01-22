@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface NavbarProps {
-  onBookCall: () => void;
+  onBookCall?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onBookCall }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onBookCall: _onBookCall = () => {} }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();

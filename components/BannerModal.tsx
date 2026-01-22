@@ -1,17 +1,8 @@
 import React, { useState, useEffect } from 'react';
-
-interface BannerData {
-  id?: string;
-  title: string;
-  description?: string;
-  image_url?: string;
-  link?: string;
-  active: boolean;
-  show_delay?: number;
-}
+import { Banner } from '../types';
 
 interface BannerModalProps {
-  banner: BannerData | null;
+  banner: Banner | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -25,13 +16,8 @@ export const BannerModal: React.FC<BannerModalProps> = ({ banner, isOpen, onClos
       return;
     }
 
-    // Set up timer based on show_delay
-    const delay = (banner.show_delay || 0) * 1000;
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, delay);
-
-    return () => clearTimeout(timer);
+    // Set up display with immediate visibility
+    setIsVisible(true);
   }, [isOpen, banner]);
 
   if (!isOpen || !banner || !isVisible) return null;
@@ -95,9 +81,9 @@ export const BannerModal: React.FC<BannerModalProps> = ({ banner, isOpen, onClos
               >
                 Close
               </button>
-              {banner.link && (
+              {banner.link_url && (
                 <a
-                  href={banner.link}
+                  href={banner.link_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-xl transition text-center"

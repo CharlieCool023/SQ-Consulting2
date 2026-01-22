@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getSubmissions, markSubmissionAsRead, deleteSubmission, getBlogs, saveBlog, updateBlog, deleteBlog, getBlogById, getCareers, saveCareer, updateCareer, deleteCareer, getCareerById, getBanners, saveBanner, updateBanner, deleteBanner, getBannerById } from '../services/supabaseService';
-import { BlogPost, CareerOpening } from '../types';
+import { BlogPost, CareerOpening, Banner } from '../types';
 import { AdminSettings } from './AdminSettings';
 import { RichTextEditor } from '../components/RichTextEditor';
 import { ToastContainer, ToastMessage, ToastType } from '../components/Toast';
@@ -18,26 +18,7 @@ export interface Message {
   created_at: string;
 }
 
-// Banner interface
-export interface Banner {
-  id: string;
-  title: string;
-  description?: string;
-  image_url?: string;
-  link?: string;
-  active: boolean;
-  order?: number;
-  created_at?: string;
-  updated_at?: string;
-}
-
 type TabType = 'messages' | 'blogs' | 'careers' | 'banners';
-
-interface FormState {
-  blog: Partial<BlogPost>;
-  career: Partial<CareerOpening>;
-  banner: Partial<Banner>;
-}
 
 export const AdminDashboard: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -88,10 +69,9 @@ export const AdminDashboard: React.FC = () => {
     title: '',
     description: '',
     image_url: '',
-    link: '',
-    active: true,
+    link_url: '',
+    is_active: true,
     order: 0,
-    show_delay: 0,
   });
 
   const [blogImagePreview, setBlogImagePreview] = useState<string>('');
@@ -139,10 +119,10 @@ export const AdminDashboard: React.FC = () => {
         getCareers(),
         getBanners(),
       ]);
-      setMessages(submissionsData);
+      setMessages(submissionsData as Message[]);
       setBlogs(blogsData);
       setCareers(careersData);
-      setBanners(bannersData);
+      setBanners(bannersData as Banner[]);
     } catch (error) {
       console.error('Error loading data:', error);
       addToast('Failed to load data', 'error');
@@ -158,7 +138,7 @@ export const AdminDashboard: React.FC = () => {
     try {
       setLoadingMessages(true);
       const data = await getSubmissions();
-      setMessages(data);
+      setMessages(data as Message[]);
       addToast('Messages loaded', 'success');
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -222,7 +202,7 @@ export const AdminDashboard: React.FC = () => {
       try {
         await deleteSubmission(id);
         const updated = await getSubmissions();
-        setMessages(updated);
+        setMessages(updated as Message[]);
       } catch (error) {
         console.error('Error deleting message:', error);
       }
@@ -233,7 +213,7 @@ export const AdminDashboard: React.FC = () => {
     try {
       await markSubmissionAsRead(id);
       const updated = await getSubmissions();
-      setMessages(updated);
+      setMessages(updated as Message[]);
     } catch (error) {
       console.error('Error marking as read:', error);
     }
@@ -372,14 +352,6 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const addRequirement = () => {
-    // No longer used - requirements managed by RichTextEditor
-  };
-
-  const removeRequirement = (index: number) => {
-    // No longer used - requirements managed by RichTextEditor
-  };
-
   // IMAGE UPLOAD HANDLERS
   const handleBlogImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -400,7 +372,7 @@ export const AdminDashboard: React.FC = () => {
       const reader = new FileReader();
       reader.onload = (event) => {
         const base64 = event.target?.result as string;
-        setBannerForm({ ...bannerForm, image: base64 });
+        setBannerForm({ ...bannerForm, image_url: base64 });
         setBannerImagePreview(base64);
       };
       reader.readAsDataURL(file);
@@ -436,10 +408,9 @@ export const AdminDashboard: React.FC = () => {
       title: '',
       description: '',
       image_url: '',
-      link: '',
-      active: true,
+      link_url: '',
+      is_active: true,
       order: 0,
-      show_delay: 0,
     });
     setEditingBannerId(null);
   };
@@ -1052,8 +1023,8 @@ export const AdminDashboard: React.FC = () => {
                 <input
                   type="url"
                   placeholder="Link URL"
-                  value={bannerForm.link || ''}
-                  onChange={(e) => setBannerForm({ ...bannerForm, link: e.target.value })}
+                  value={bannerForm.link_url || ''}
+                  onChange={(e) => setBannerForm({ ...bannerForm, link_url: e.target.value })}
                   className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
@@ -1061,25 +1032,12 @@ export const AdminDashboard: React.FC = () => {
               <label className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3 cursor-pointer hover:bg-white/10 transition mb-6">
                 <input
                   type="checkbox"
-                  checked={bannerForm.active || false}
-                  onChange={(e) => setBannerForm({ ...bannerForm, active: e.target.checked })}
+                  checked={bannerForm.is_active || false}
+                  onChange={(e) => setBannerForm({ ...bannerForm, is_active: e.target.checked })}
                   className="w-5 h-5 rounded"
                 />
                 <span className="text-white font-medium">Active</span>
               </label>
-
-              <div className="mb-6">
-                <label className="text-white text-sm font-bold mb-3 block">Show Delay (seconds)</label>
-                <input
-                  type="number"
-                  placeholder="Delay before showing banner (0 = immediate)"
-                  value={bannerForm.show_delay || 0}
-                  onChange={(e) => setBannerForm({ ...bannerForm, show_delay: parseInt(e.target.value) || 0 })}
-                  min="0"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-                <p className="text-slate-400 text-xs mt-2">Banner will appear after this many seconds on page load</p>
-              </div>
 
               {bannerImagePreview && (
                 <div className="mb-6">
@@ -1126,9 +1084,9 @@ export const AdminDashboard: React.FC = () => {
                       className="bg-white/5 backdrop-blur rounded-xl p-6 border border-white/10 hover:border-primary/30 transition"
                     >
                       <div className="flex flex-col md:flex-row gap-6">
-                        {banner.image && (
+                        {banner.image_url && (
                           <img
-                            src={banner.image}
+                            src={banner.image_url}
                             alt={banner.title}
                             className="w-full md:w-40 h-32 object-cover rounded-lg"
                           />
@@ -1137,19 +1095,19 @@ export const AdminDashboard: React.FC = () => {
                           <h3 className="text-xl font-bold text-white mb-2">{banner.title}</h3>
                           <p className="text-slate-400 text-sm mb-3">{banner.description}</p>
                           <div className="flex gap-3 flex-wrap">
-                            {banner.active && <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-bold">Active</span>}
+                            {banner.is_active && <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-bold">Active</span>}
                             <span className="px-3 py-1 bg-white/10 text-slate-300 rounded-full text-xs">Order: {banner.order}</span>
                           </div>
                         </div>
                         <div className="flex gap-2 w-full md:w-auto">
                           <button
-                            onClick={() => handleEditBanner(banner.id)}
+                            onClick={() => banner.id && handleEditBanner(banner.id)}
                             className="flex-1 md:flex-none bg-primary/20 hover:bg-primary/40 text-primary py-2 px-4 rounded-lg transition font-bold"
                           >
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDeleteBanner(banner.id)}
+                            onClick={() => banner.id && handleDeleteBanner(banner.id)}
                             className="flex-1 md:flex-none bg-red-500/20 hover:bg-red-500/40 text-red-400 py-2 px-4 rounded-lg transition font-bold"
                           >
                             Delete

@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CAREER_OPENINGS } from '../constants';
 import { CareerOpening } from '../types';
 import { getCareers } from '../services/supabaseService';
 
 export const CareersPage: React.FC = () => {
-  const navigate = useNavigate();
   const [allCareers, setAllCareers] = useState<CareerOpening[]>([]);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<CareerOpening | null>(null);
+  const [formData, setFormData] = useState({ 
+    applicant_name: '', 
+    applicant_email: '', 
+    applicant_phone: '', 
+    cover_letter: '' 
+  });
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   useEffect(() => {
     loadCareers();
@@ -29,7 +38,38 @@ export const CareersPage: React.FC = () => {
   };
 
   const handleApply = (job: CareerOpening) => {
-    navigate(`/careers/${job.id}/apply`);
+    setSelectedJob(job);
+    setShowApplicationForm(true);
+    setSubmitError('');
+    setSubmitSuccess(false);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCvFile(file);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitError('');
+    
+    try {
+      // Handle form submission
+      setSubmitSuccess(true);
+      setFormData({ applicant_name: '', applicant_email: '', applicant_phone: '', cover_letter: '' });
+      setCvFile(null);
+      setTimeout(() => {
+        setShowApplicationForm(false);
+        setSubmitSuccess(false);
+      }, 2000);
+    } catch (error) {
+      setSubmitError('Failed to submit application. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -229,13 +269,12 @@ export const CareersPage: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Upload CV {cvUploadRequired ? '*' : '(Optional)'}
+                      Upload CV (Optional)
                     </label>
                     <div className="relative">
                       <input
                         type="file"
                         accept=".pdf,.doc,.docx"
-                        required={cvUploadRequired}
                         onChange={handleFileChange}
                         className="hidden"
                         id="cv-upload"

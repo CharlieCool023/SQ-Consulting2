@@ -5,15 +5,14 @@ import { ServiceCard } from '../components/ServiceCard';
 import { Hero } from '../components/Hero';
 import { Testimonials } from '../components/Testimonials';
 import { BannerModal } from '../components/BannerModal';
-import { TeamMember, Project, BlogPost } from '../types';
+import { TeamMember, Project, BlogPost, Banner } from '../types';
 import { getBanners, getBlogs } from '../services/supabaseService';
-import { Banner } from '../types';
 
 interface HomeProps {
-  onBookCall: () => void;
+  onBookCall?: () => void;
 }
 
-export const Home: React.FC<HomeProps> = ({ onBookCall }) => {
+export const Home: React.FC<HomeProps> = ({ onBookCall = () => {} }) => {
   const [projects, setProjects] = useState<Project[]>(PROJECTS);
   const [team, setTeam] = useState<TeamMember[]>(TEAM_MEMBERS);
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -25,7 +24,7 @@ export const Home: React.FC<HomeProps> = ({ onBookCall }) => {
     const loadData = async () => {
       try {
         // Load banners from Supabase
-        const allBanners = (await getBanners()).filter(b => b.active).sort((a, b) => (a.order || 0) - (b.order || 0));
+        const allBanners = (await getBanners()).filter(b => b.is_active).sort((a, b) => (a.order || 0) - (b.order || 0));
         setBanners(allBanners);
         
         // Set first active banner as modal
@@ -183,11 +182,11 @@ export const Home: React.FC<HomeProps> = ({ onBookCall }) => {
               {banners.map((banner) => (
                 <a
                   key={banner.id}
-                  href={banner.link || '#'}
+                  href={banner.link_url || '#'}
                   className="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 block"
                 >
                   <img
-                    src={banner.image}
+                    src={banner.image_url || ''}
                     alt={banner.title}
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
                   />

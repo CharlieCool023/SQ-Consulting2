@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { BLOG_POSTS } from '../constants';
 
 export const InsightsPage: React.FC = () => {

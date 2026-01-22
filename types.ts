@@ -70,3 +70,26 @@ export interface BookingForm {
   preferred_date: string;
   message: string;
 }
+
+export interface Banner {
+  id?: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  link_url?: string;
+  order: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Submission {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
