@@ -77,8 +77,9 @@ export interface Banner {
   description?: string;
   image_url?: string;
   link_url?: string;
-  order: number;
+  order?: number;
   is_active: boolean;
+  delay_seconds?: number;
   created_at?: string;
   updated_at?: string;
 }

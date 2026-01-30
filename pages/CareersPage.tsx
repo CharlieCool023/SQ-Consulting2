@@ -183,8 +183,8 @@ export const CareersPage: React.FC = () => {
 
       {/* Application Modal */}
       {showApplicationForm && selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative z-[310]">
             <div className="bg-primary text-white p-6 rounded-t-3xl flex justify-between items-center sticky top-0 z-10">
               <div>
                 <h2 className="text-2xl font-bold">Apply for {selectedJob.title}</h2>

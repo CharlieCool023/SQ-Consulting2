@@ -4,9 +4,8 @@ import { SERVICES, TEAM_MEMBERS, PROJECTS, COMPANY_INFO } from '../constants';
 import { ServiceCard } from '../components/ServiceCard';
 import { Hero } from '../components/Hero';
 import { Testimonials } from '../components/Testimonials';
-import { BannerModal } from '../components/BannerModal';
-import { TeamMember, Project, BlogPost, Banner } from '../types';
-import { getBanners, getBlogs } from '../services/supabaseService';
+import { TeamMember, Project, BlogPost } from '../types';
+import { getBlogs } from '../services/supabaseService';
 
 interface HomeProps {
   onBookCall?: () => void;
@@ -15,24 +14,11 @@ interface HomeProps {
 export const Home: React.FC<HomeProps> = ({ onBookCall = () => {} }) => {
   const [projects, setProjects] = useState<Project[]>(PROJECTS);
   const [team, setTeam] = useState<TeamMember[]>(TEAM_MEMBERS);
-  const [banners, setBanners] = useState<Banner[]>([]);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
-  const [activeBanner, setActiveBanner] = useState<Banner | null>(null);
-  const [bannerModalOpen, setBannerModalOpen] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Load banners from Supabase
-        const allBanners = (await getBanners()).filter(b => b.is_active).sort((a, b) => (a.order || 0) - (b.order || 0));
-        setBanners(allBanners);
-        
-        // Set first active banner as modal
-        if (allBanners.length > 0) {
-          setActiveBanner(allBanners[0]);
-          setBannerModalOpen(true);
-        }
-
         // Load featured blogs from Supabase
         const allBlogs = (await getBlogs()).filter(b => b.published).slice(0, 3);
         setBlogs(allBlogs);
@@ -70,13 +56,6 @@ export const Home: React.FC<HomeProps> = ({ onBookCall = () => {} }) => {
 
   return (
     <div id="home">
-      {/* Banner Modal */}
-      <BannerModal 
-        banner={activeBanner} 
-        isOpen={bannerModalOpen}
-        onClose={() => setBannerModalOpen(false)}
-      />
-      
       <Hero onBookCall={onBookCall} />
 
       {/* Who We Are Section */}
@@ -173,34 +152,6 @@ export const Home: React.FC<HomeProps> = ({ onBookCall = () => {} }) => {
           </div>
         </div>
       </section>
-
-      {/* Banners Section */}
-      {banners.length > 0 && (
-        <section className="py-12 md:py-16 bg-gray-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {banners.map((banner) => (
-                <a
-                  key={banner.id}
-                  href={banner.link_url || '#'}
-                  className="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 block"
-                >
-                  <img
-                    src={banner.image_url || ''}
-                    alt={banner.title}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <h3 className="text-xl font-bold text-white mb-2">{banner.title}</h3>
-                    <p className="text-gray-200 text-sm">{banner.description}</p>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Why Choose Us */}
       <section className="py-20 md:py-28 bg-white">

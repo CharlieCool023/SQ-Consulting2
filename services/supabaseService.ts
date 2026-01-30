@@ -630,24 +630,26 @@ export const getBanners = async (): Promise<Banner[]> => {
     "banners:all",
     async () => {
       try {
+        console.log('🔵 getBanners called');
         // Optimize: Only fetch active banners, select specific columns
         const { data, error } = await supabase
           .from("banners")
           .select(
-            "id,created_at,updated_at,title,description,image_url,link_url,is_active,show_delay,order"
+            "id,created_at,updated_at,title,description,image_url,link_url,is_active,delay_seconds,order"
           )
           .eq("is_active", true)
           .order("order", { ascending: true })
           .limit(50);
 
         if (error) {
-          console.error("Get banners error:", error);
+          console.error("❌ Get banners error:", error);
           return [];
         }
 
+        console.log('✅ Banners fetched:', data);
         return data || [];
       } catch (error) {
-        console.error("Get banners error:", error);
+        console.error("❌ Get banners exception:", error);
         return [];
       }
     },
@@ -685,6 +687,8 @@ export const saveBanner = async (
   banner: Partial<Banner>
 ): Promise<{ success: boolean; id?: string; message?: string }> => {
   try {
+    console.log('🔵 saveBanner called with:', banner);
+    
     const { data, error } = await supabase
       .from("banners")
       .insert([banner])
@@ -692,20 +696,24 @@ export const saveBanner = async (
       .single();
 
     if (error) {
-      console.error("Save banner error:", error);
+      console.error("❌ Save banner error:", error);
+      console.error("Error code:", error.code);
+      console.error("Error details:", error.details);
+      console.error("Error hint:", error.hint);
       return {
         success: false,
         message: error.message || "Failed to save banner",
       };
     }
 
+    console.log('✅ Banner saved successfully:', data);
     // Invalidate cache
     cacheManager.invalidate("banners:all");
 
     return { success: true, id: data.id, message: "Banner saved successfully" };
   } catch (error) {
-    console.error("Save banner error:", error);
-    return { success: false, message: "Failed to save banner" };
+    console.error("❌ Save banner exception:", error);
+    return { success: false, message: error instanceof Error ? error.message : "Failed to save banner" };
   }
 };
 
@@ -856,3 +864,63 @@ export const getCacheExpiryTime = (): number => {
  * Export cache keys for use in other modules
  */
 export const getCacheKeys = () => CACHE_KEYS;
+
+// ============ SETTINGS MANAGEMENT ============
+
+export interface SiteSettings {
+  id?: string;
+  hero_enabled: boolean;
+  services_enabled: boolean;
+  testimonials_enabled: boolean;
+  careers_enabled: boolean;
+  blog_enabled: boolean;
+  team_members: any[];
+  updated_at?: string;
+}
+
+export const getSettings = async (): Promise<SiteSettings[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("site_settings")
+      .select("*");
+
+    if (error) {
+      console.error("Get settings error:", error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error("Get settings error:", error);
+    return [];
+  }
+};
+
+export const updateSettings = async (
+  settings: SiteSettings
+): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const { error } = await supabase
+      .from("site_settings")
+      .upsert({
+        id: settings.id || 1,
+        hero_enabled: settings.hero_enabled,
+        services_enabled: settings.services_enabled,
+        testimonials_enabled: settings.testimonials_enabled,
+        careers_enabled: settings.careers_enabled,
+        blog_enabled: settings.blog_enabled,
+        team_members: settings.team_members,
+        updated_at: new Date().toISOString(),
+      });
+
+    if (error) {
+      console.error("Update settings error:", error);
+      return { success: false, message: error.message };
+    }
+
+    return { success: true, message: "Settings updated successfully" };
+  } catch (error) {
+    console.error("Update settings error:", error);
+    return { success: false, message: "Failed to update settings" };
+  }
+};
